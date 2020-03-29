@@ -3,6 +3,9 @@ var express = require('express');
 var path = require('path');
 var cookieParser = require('cookie-parser');
 var logger = require('morgan');
+var session = require('express-session');
+var FileStore = require('session-file-store')(session);
+
 //importing routers
 var indexRouter = require('./routes/index');
 var usersRouter = require('./routes/users');
@@ -16,6 +19,7 @@ const mongoose = require('mongoose');
 const Dishes = require('./models/dishes');
 const Promotions = require('./models/promotions');
 const Leaders = require('./models/leaders');
+const Users = require('./models/user');
 
 const url = 'mongodb://localhost:27017/conFusion';
 
@@ -33,53 +37,39 @@ app.set('view engine', 'jade');
 app.use(logger('dev'));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
-app.use(cookieParser('12345-67890-09876-54321'));
+//because using sessions
+//app.use(cookieParser('12345-67890-09876-54321'));
+app.use(session({
+  name: 'session-id',
+  secret: '12345-67890-09876-54321',
+  saveUninitialized: false,
+  resave: false,
+  store: new FileStore()
+}));
 
+app.use('/', indexRouter);
+app.use('/users', usersRouter);
 
 function auth(req, res, next) {
-  console.log(req.signedCookies);
+  console.log(req.session);
 
-  if (!req.signedCookies.user) {
-    var authHeader = req.headers.authorization;
-    if (!authHeader) {
-      //if cookie not generated that means user will have to first authenticate
-      var err = new Error('You are not authenticated!');
-      res.setHeader('WWW-Authenticate', 'Basic');
-      err.status = 401;
-      return next(err);
-    }
+  if (!req.session.user) {
+    var err = new Error('You are not authenticated!');
+    err.status = 401;
+    return next(err);
 
-    //Split basic username:password then using [1]
-    var auth = new Buffer.from(authHeader.split(' ')[1], 'base64').toString().split(':');
-    var username = auth[0];
-    var password = auth[1];
-
-    if (username === 'admin' && password === 'password') {
-      //setup cookie
-      res.cookie('user', 'admin', { signed: true })
-      next();
-    }
-    else {
-      var err = new Error('You are not authenticated!');
-      res.setHeader('WWW-Authenticate', 'Basic');
-      err.status = 401;
-      return next(err);
-    }
   }
   else {
-    if (req.signedCookies.user === 'admin') {
+    if (req.session.user === 'authenticated') {
       //valid cookie
       next();
     }
     else {
       //cookie not valid
       var err = new Error('You are not authenticated!');
-      res.setHeader('WWW-Authenticate', 'Basic');
-      err.status = 401;
+      err.status = 403;
       return next(err);
     }
-
-
   }
 }
 
@@ -87,8 +77,7 @@ app.use(auth);
 
 //should be after auth
 app.use(express.static(path.join(__dirname, 'public')));
-app.use('/', indexRouter);
-app.use('/users', usersRouter);
+
 app.use('/dishes', dishRouter);
 app.use('/leaders', leaderRouter);
 app.use('/promotions', promoRouter);
