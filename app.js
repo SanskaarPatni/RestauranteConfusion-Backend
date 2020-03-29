@@ -3,7 +3,7 @@ var express = require('express');
 var path = require('path');
 var cookieParser = require('cookie-parser');
 var logger = require('morgan');
-
+//importing routers
 var indexRouter = require('./routes/index');
 var usersRouter = require('./routes/users');
 var dishRouter = require('./routes/dishRouter');
@@ -11,13 +11,19 @@ var leaderRouter = require('./routes/leaderRouter');
 var promoRouter = require('./routes/promoRouter');
 
 const mongoose = require('mongoose');
+
+//importing models
 const Dishes = require('./models/dishes');
+const Promotions = require('./models/promotions');
+const Leaders = require('./models/leaders');
 
 const url = 'mongodb://localhost:27017/conFusion';
+
 const connect = mongoose.connect(url);
 connect.then((db) => {
   console.log('Connected correctly  to Server');
 }, (err) => { console.log(err) });
+
 var app = express();
 
 // view engine setup
@@ -27,9 +33,37 @@ app.set('view engine', 'jade');
 app.use(logger('dev'));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
-app.use(cookieParser());
-app.use(express.static(path.join(__dirname, 'public')));
+app.use(cookieParser('12345-67890-09876-54321'));
 
+
+function auth(req, res, next) {
+  console.log(req.headers);
+  var authHeader = req.headers.authorization;
+  if (!authHeader) {
+    var err = new Error('You are not authenticated!');
+    res.setHeader('WWW-Authenticate', 'Basic');
+    err.status = 401;
+    return next(err);
+  }
+  //Split basic username:password then using [1]
+  var auth = new Buffer(authHeader.split(' ')[1], 'base64').toString().split(':');
+  var username = auth[0];
+  var password = auth[1];
+  if (username === 'admin' && password === 'password') {
+    next();
+  }
+  else {
+    var err = new Error('You are not authenticated!');
+    res.setHeader('WWW-Authenticate', 'Basic');
+    err.status = 401;
+    return next(err);
+  }
+}
+
+app.use(auth);
+
+//should be after auth
+app.use(express.static(path.join(__dirname, 'public')));
 app.use('/', indexRouter);
 app.use('/users', usersRouter);
 app.use('/dishes', dishRouter);

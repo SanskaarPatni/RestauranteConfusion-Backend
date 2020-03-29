@@ -131,7 +131,7 @@ dishRouter.route('/:dishId/comments')
         Dishes.findById(req.params.dishId)
             .then((dish) => {
                 if (dish != null) {
-                    //one-by-one delete all comments
+                    //one-by-one delete all comments since each comment is a sub-document!
 
                     for (var i = (dish.comments.length - 1); i >= 0; i--) {
                         dish.comments.id(dish.comments[i]._id).remove();
