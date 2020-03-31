@@ -1,7 +1,83 @@
 <html>
-    <title>This is index.html</title>
-    <body>
-        <h1>Index.Html</h1>
-        <p>This is the contents of the index.html file</p>
-    </body>
+<title>This is index.html</title>
+
+<body>
+    <!--<script>
+        function statusChangeCallBack(response) {
+            console.log('statusChangeCallback');
+            console.log(response);
+
+            if (response.status === 'connected') {
+                testAPI();
+            }
+            else {
+                document.getElementById('status').innerHTML = 'Please login into this app.';
+            }
+        }
+
+        function checkLoginState() {
+            FB.getLoginStatus(function (response) {
+                statusChangeCallBack(response);
+            });
+        }
+
+        window.fbAsyncInit = function () {
+            FB.init({
+                appId: ' 849023778937626',
+                xfbml: true,
+                version: 'v2.10'
+            });
+            FB.AppEvents.logPageView();
+
+
+            FB.getLoginStatus(function (response) {
+                statusChangeCallBack(response);
+            });
+        };
+
+
+        (function (d, s, id) {
+            var js, fjs = d.getElementsByTagName(s)[0];
+
+            if (d.getElementById(id)) { return; }
+
+            js = d.createElement(s); js.id = id;
+
+            js.src = '//connect.facebook.net/en_US/sdk.js';
+
+        }(document, 'script', 'facebook-jssdk'));
+
+        function testAPI() {
+            console.log('Welcome! Fetching your information..');
+
+            FB.api('/me', function (resposne) {
+                console.log('Succesful login for: ' + response.name);
+                document.getElementById('status').innerHTML =
+                    'Thanks for logging in, ' + response.name + '!';
+            });
+        }
+
+    </script>
+    <h1>Index.Html</h1>
+    <p>This is the contents of the index.html file</p>
+    <fb:login-button scope="public_profile,email" onlogin="checkLoginState();" login_text="
+    " class=" fb_iframe_widget" fb-xfbml-state="rendered"
+        fb-iframe-plugin-query="app_id=&amp;container_width=0&amp;locale=en_US&amp;login_text=%0A%20%20%20%20&amp;scope=public_profile%2Cemail&amp;sdk=joey">
+        <span style="vertical-align: top; width: 0px; height: 0px; overflow: hidden;"><iframe name="f30e96de95472"
+                width="1000px" height="1000px" data-testid="fb:login_button Facebook Social Plugin"
+                title="fb:login_button Facebook Social Plugin" frameborder="0" allowtransparency="true"
+                allowfullscreen="true" scrolling="no" allow="encrypted-media" src="./index_files/login_button.html"
+                style="border: none; visibility: visible; width: 0px; height: 0px;"></iframe></span></fb:login-button>
+
+    <div id="status">
+    </div>
+
+
+    <div id="fb-root" class=" fb_reset">
+        <div style="position: absolute; top: -10000px; width: 0px; height: 0px;">
+            <div></div>
+        </div>
+    </div>-->
+</body>
+
 </html>

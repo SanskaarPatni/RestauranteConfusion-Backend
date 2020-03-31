@@ -3,8 +3,8 @@ const bodyParser = require('body-parser');
 const authenticate = require('../authenticate');
 const multer = require('multer');
 const cors = require('./cors');
-//customizing multer
 
+//customizing multer
 const storage = multer.diskStorage({
     destination: (req, file, cb) => {
         cb(null, 'public/images');
