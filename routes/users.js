@@ -3,12 +3,13 @@ const bodyParser = require('body-parser');
 var User = require('../models/user');
 var passport = require('passport');
 var authenticate = require('../authenticate');
+const cors = require('./cors');
 var router = express.Router();
 router.use(bodyParser.json());
 
 /* GET users listing. */
 router.route('/')
-  .get(authenticate.verifyUser, authenticate.verifyAdmin, (req, res, next) => {
+  .get(cors.corsWithOptions, authenticate.verifyUser, authenticate.verifyAdmin, (req, res, next) => {
     User.find({})
       .then((users) => {
         res.statusCode = 200;
@@ -19,7 +20,7 @@ router.route('/')
   });
 
 
-router.post('/signup', function (req, res, next) {
+router.post('/signup', cors.corsWithOptions, function (req, res, next) {
   //mongoose plugin provides register
   User.register(
     new User({
@@ -63,7 +64,7 @@ router.post('/signup', function (req, res, next) {
 //here we expect usernmae nad password to be in the body
 //third parameter only executed if the second parameter doesnt throw and error
 //hence using passport simplifies are code
-router.post('/login',
+router.post('/login', cors.corsWithOptions,
   passport.authenticate('local'),
   (req, res, next) => {
     var token = authenticate.getToken({ _id: req.user._id })
@@ -77,7 +78,7 @@ router.post('/login',
       });
   });
 
-router.get('/logout', (req, res, next) => {
+router.get('/logout', cors.corsWithOptions, (req, res, next) => {
   if (req.session) {
     req.session.destroy();
     res.clearCookie('session-id');
