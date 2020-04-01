@@ -11,16 +11,16 @@ router.use(bodyParser.json());
 router.options('*', cors.corsWithOptions, (req, res) => {
   res.sendStatus(200);
 });
-router.route('/',
-  get(cors.corsWithOptions, authenticate.verifyUser, authenticate.verifyAdmin, (req, res, next) => {
-    User.find({})
-      .then((users) => {
-        res.statusCode = 200;
-        res.setHeader('Content-Type', 'application/json');
-        res.json(users);
-      }, (err) => next(err))
-      .catch((err) => next(err));
-  });
+
+router.get('/', cors.corsWithOptions, authenticate.verifyUser, authenticate.verifyAdmin, (req, res, next) => {
+  User.find({})
+    .then((users) => {
+      res.statusCode = 200;
+      res.setHeader('Content-Type', 'application/json');
+      res.json(users);
+    }, (err) => next(err))
+    .catch((err) => next(err));
+});
 
 
 router.post('/signup', cors.corsWithOptions, function (req, res, next) {
