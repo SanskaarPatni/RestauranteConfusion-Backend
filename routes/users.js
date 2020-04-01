@@ -8,8 +8,11 @@ var router = express.Router();
 router.use(bodyParser.json());
 
 /* GET users listing. */
-router.route('/')
-  .get(cors.corsWithOptions, authenticate.verifyUser, authenticate.verifyAdmin, (req, res, next) => {
+router.options('*', cors.corsWithOptions, (req, res) => {
+  res.sendStatus(200);
+});
+router.route('/',
+  get(cors.corsWithOptions, authenticate.verifyUser, authenticate.verifyAdmin, (req, res, next) => {
     User.find({})
       .then((users) => {
         res.statusCode = 200;
@@ -64,18 +67,46 @@ router.post('/signup', cors.corsWithOptions, function (req, res, next) {
 //here we expect usernmae nad password to be in the body
 //third parameter only executed if the second parameter doesnt throw and error
 //hence using passport simplifies are code
+//took the passport.authenticate inside to handle errors appropriately since mixing with front end
 router.post('/login', cors.corsWithOptions,
-  passport.authenticate('local'),
   (req, res, next) => {
-    var token = authenticate.getToken({ _id: req.user._id })
-    res.statusCode = 200;
-    res.setHeader('Content-Type', 'application/json');
-    res.json(
-      {
-        success: true,
-        token: token,
-        status: 'You are successfully logged in',
+    passport.authenticate('local', (err, user, info) => {
+      //important:user does not exist is not counted as an error
+      if (err)
+        return next(err);
+      if (!user) {
+        res.statusCode = 401;
+        res.setHeader('Content-Type', 'application/json');
+        res.json(
+          {
+            success: false,
+            status: 'Login unsuccessful',
+            err: info
+          });
+      }
+      req.logIn(user, (err) => {
+        if (err) {
+          res.statusCode = 401;
+          res.setHeader('Content-Type', 'application/json');
+          res.json(
+            {
+              success: false,
+              status: 'Login unsuccessful',
+              err: 'Could not log in user'
+            });
+        }
+        var token = authenticate.getToken({ _id: req.user._id });
+        res.statusCode = 200;
+        res.setHeader('Content-Type', 'application/json');
+        res.json(
+          {
+            success: true,
+            status: 'Login successful',
+            token: token
+          });
       });
+    })(req, res, next);
+
   });
 
 router.get('/logout', cors.corsWithOptions, (req, res, next) => {
@@ -89,6 +120,25 @@ router.get('/logout', cors.corsWithOptions, (req, res, next) => {
     err.status = 403;
     next(err);
   }
+});
+
+router.get('/checkJWTToken', cors.corsWithOptions, (req, res) => {
+  passport.authenticate('jwt', { session: false }, (err, user, info) => {
+    if (err) {
+      return next(err);
+    }
+    if (!user) {
+      res.statusCode = 401;
+      res.setHeader('Content-Type', 'application/json');
+      return res.json({ status: 'JWT invalid!', success: false, err: info });
+    }
+    else {
+      res.statusCode = 200;
+      res.setHeader('Content-Type', 'application/json');
+      return res.json({ status: 'JWT valid!', success: true, user: user });
+    }
+    //need to append this thats how passport authenticate is use when a callback function is used
+  })(req, res);
 });
 
 /*router.get('/facebook/token',
